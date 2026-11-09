@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Happy Birthday Nishu, My Love ❤️</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Nunito:wght@400;600;700;800;900&family=Patrick+Hand&family=Playfair+Display:ital,wght@0,700;1,600&display=swap" rel="stylesheet">
+  
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <script>
+    // Configuration: 9th November -> 0911
+    const CORRECT_PIN = "0911";
+    let enteredPin = "";
+    const slideState = { gift1: { current: 0, total: 3 } };
+    let candleBlown = false;
+
+    function safeConfetti(options) {
+      if (typeof confetti === 'function') confetti(options);
+    }
+
+    function tryNextSource(imgElement, fallbacks) {
+      if (!imgElement.dataset.fallbackIndex) imgElement.dataset.fallbackIndex = "0";
+      let idx = parseInt(imgElement.dataset.fallbackIndex);
+      if (idx < fallbacks.length) {
+        imgElement.dataset.fallbackIndex = (idx + 1).toString();
+        imgElement.src = fallbacks[idx];
+      } else {
+        imgElement.onerror = null;
+      }
+    }
+
+    function pressKey(k) {
+      if (enteredPin.length < 4) {
+        enteredPin += k.toString();
+        updatePinDisplay();
+        if (enteredPin.length === 4) {
+          setTimeout(submitPin, 250);
+        }
+      }
+    }
+
+    function updatePinDisplay() {
+      for (let i = 0; i < 4; i++) {
+        const slot = document.getElementById(`slot-${i}`);
+        if (slot) {
+          if (i < enteredPin.length) {
+            slot.classList.add('filled');
+            slot.textContent = "❤️";
+          } else {
+            slot.classList.remove('filled');
+            slot.textContent = "";
+          }
+        }
+      }
+    }
+
+    function clearPin() {
+      enteredPin = "";
+      updatePinDisplay();
+      document.getElementById('pin-error').style.display = "none";
+    }
+
+    function submitPin() {
+      if (enteredPin === CORRECT_PIN) {
+        safeConfetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+        showScreen('screen-teaser');
+      } else {
+        const errorEl = document.getElementById('pin-error');
+        errorEl.style.display = "block";
+        const lockCard = document.querySelector('.lock-card');
+        lockCard.classList.add('shake');
+        setTimeout(() => lockCard.classList.remove('shake'), 400);
+      }
+    }
+
+    function retryPin() { clearPin(); }
+
+    function showScreen(screenId) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      const target = document.getElementById(screenId);
+      if (target) {
+        target.classList.add('active');
+        window.scrollTo(0, 0);
+      }
+    }
+
+    function openGiftScreen(key) {
+      showScreen(`screen-${key}`);
+      if (slideState[key]) {
+        slideState[key].current = 0;
+        updateSlides(key);
+      }
+    }
+
+    function goToHub() { showScreen('screen-hub'); }
+
+    function changeSlide(giftKey, direction) {
+      const state = slideState[giftKey];
+      state.current = (state.current + direction + state.total) % state.total;
+      updateSlides(giftKey);
+    }
+
+    function updateSlides(giftKey) {
+      const prefix = 'g1';
+      const state = slideState[giftKey];
+
+      for (let i = 0; i < state.total; i++) {
+        const slide = document.getElementById(`${prefix}-slide-${i}`);
+        if (slide) slide.classList.toggle('active', i === state.current);
+      }
+
+      const dotsContainer = document.getElementById(`dots-${giftKey}`);
+      if (dotsContainer) {
+        const dots = dotsContainer.querySelectorAll('.dot');
+        dots.forEach((dot, idx) => {
+          dot.classList.toggle('active', idx === state.current);
+        });
+      }
+    }
+
+    function blowCandle() {
+      if (candleBlown) return;
+      candleBlown = true;
+      const flame = document.getElementById('flame');
+      if (flame) flame.style.display = "none";
+      const wishMsg = document.getElementById('wish-success');
+      if (wishMsg) wishMsg.style.display = "block";
+      safeConfetti({ particleCount: 160, spread: 90, origin: { y: 0.5 } });
+    }
+
+    function acceptProposal() {
+      const propBox = document.getElementById('proposal-box');
+      propBox.innerHTML = `
+        <div style="animation: popIn 0.5s ease; padding: 20px 10px;">
+          <div style="font-size: 4rem; margin-bottom: 10px;">💍💖✨</div>
+          <h2 style="font-family: var(--font-cute); font-size: 2.4rem; color: var(--pink-dark); margin-bottom: 8px;">
+            You just made me the happiest person alive!
+          </h2>
+          <p style="font-size: 1.15rem; color: #4a5568; line-height: 1.6;">
+            Happy Birthday, my love. I promise to cherish, respect, and love you today, tomorrow, and every day that follows. ❤️
+          </p>
+        </div>
+      `;
+      safeConfetti({ particleCount: 300, spread: 120, origin: { y: 0.5 } });
+      const duration = 3 * 1000;
+      const end = Date.now() + duration;
+      (function frame() {
+        confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 } });
+        confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 } });
+        if (Date.now() < end) requestAnimationFrame(frame);
+      }());
+    }
+
+    function dodgeNo(btn) {
+      const x = Math.random() * 140 - 70;
+      const y = Math.random() * 80 - 40;
+      btn.style.transform = `translate(${x}px, ${y}px)`;
+      btn.textContent = "Yes, Obviously! 💖";
+      btn.onclick = acceptProposal;
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key >= '0' && e.key <= '9') pressKey(parseInt(e.key));
+      if (e.key === 'Backspace' || e.key === 'Escape') clearPin();
+      if (e.key === 'Enter') submitPin();
+    });
+  </script>
+
+  <style>
+    :root {
+      --font-body: 'Nunito', sans-serif;
+      --font-cute: 'Caveat', cursive;
+      --font-script: 'Patrick Hand', cursive;
+      --font-title: 'Playfair Display', serif;
+      --pink-primary: #ff4d6d;
+      --pink-soft: #ffe5ec;
+      --pink-dark: #c9184a;
+      --pink-bg: #fff0f3;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-body);
+      background: var(--pink-bg);
+      color: #333;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    .bg-video-container {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      z-index: -1;
+      opacity: 0.15;
+      overflow: hidden;
+    }
+    .bg-video {
+      width: 100%; height: 100%;
+      object-fit: cover;
+    }
+
+    .screen {
+      display: none;
+      min-height: 100vh;
+      padding: 25px 15px;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+    .screen.active { display: flex; }
+
+    .lock-card, .teaser-card, .hub-container, .subview-container {
+      background: rgba(255, 255, 255, 0.96);
+      border-radius: 24px;
+      padding: 30px 20px;
+      box-shadow: 0 15px 35px rgba(201, 24, 74, 0.16);
+      width: 100%;
+      max-width: 480px;
+      text-align: center;
+    }
+    .subview-container { max-width: 650px; }
+
+    .avatar-img {
+      width: 135px; height: 135px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 4px solid var(--pink-primary);
+      margin-bottom: 12px;
+      box-shadow: 0 6px 18px rgba(255, 77, 109, 0.35);
+    }
+
+    .lock-title {
+      font-family: var(--font-cute);
+      font-size: 2.3rem;
+      color: var(--pink-dark);
+      margin-bottom: 10px;
+    }
+
+    .pin-display {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin: 15px 0 25px;
+    }
+    .pin-slot {
+      width: 46px; height: 46px;
+      border: 2px solid var(--pink-soft);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      background: #fff;
+    }
+    .pin-slot.filled {
+      border-color: var(--pink-primary);
+      background: var(--pink-soft);
+    }
+
+    .keypad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      max-width: 280px;
+      margin: 0 auto;
+    }
+    .num-key {
+      background: white;
+      border: 2px solid var(--pink-soft);
+      border-radius: 50%;
+      width: 60px; height: 60px;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--pink-dark);
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto;
+    }
+    .num-key:hover {
+      background: var(--pink-primary);
+      color: white;
+      border-color: var(--pink-primary);
+      transform: scale(1.05);
+    }
+
+    .cute-btn {
+      background: linear-gradient(135deg, var(--pink-primary) 0%, var(--pink-dark) 100%);
+      color: white;
+      border: none;
+      padding: 12px 28px;
+      border-radius: 25px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 8px 18px rgba(201, 24, 74, 0.3);
+      transition: transform 0.2s ease;
+    }
+    .cute-btn:hover { transform: translateY(-2px); }
+
+    .gifts-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 25px 0;
+    }
+    .gift-item-card {
+      background: white;
+      border: 2px solid var(--pink-soft);
+      border-radius: 16px;
+      padding: 18px 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .gift-item-card:hover {
+      border-color: var(--pink-primary);
+      transform: translateY(-4px);
+    }
+    .gift-icon { font-size: 2.4rem; margin-bottom: 8px; }
+
+    .subview-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      width: 100%;
+    }
+    .back-btn {
+      background: var(--pink-soft);
+      color: var(--pink-dark);
+      border: none;
+      padding: 8px 16px;
+      border-radius: 15px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .slide-dots { display: flex; gap: 6px; }
+    .dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: #ddd;
+    }
+    .dot.active { background: var(--pink-primary); }
+
+    .slide-page { display: none; }
+    .slide-page.active { display: block; animation: fadeIn 0.4s ease; }
+
+    .carousel-arrows {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 15px;
+    }
+    .arrow-btn {
+      background: white;
+      border: 2px solid var(--pink-primary);
+      color: var(--pink-primary);
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
+    .reel-showcase-box {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 14px;
+      margin: 15px 0;
+    }
+    .phone-reel-card {
+      background: #000;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+      position: relative;
+    }
+    .phone-video {
+      width: 100%; height: 260px;
+      object-fit: cover;
+      display: block;
+    }
+    .phone-badge {
+      position: absolute;
+      bottom: 8px; left: 8px; right: 8px;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      font-size: 0.8rem;
+      border-radius: 8px;
+      padding: 4px;
+    }
+
+    .polaroid-row {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin: 15px 0;
+    }
+    .polaroid-card {
+      background: white;
+      padding: 10px 10px 20px 10px;
+      border-radius: 6px;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.12);
+      transform: rotate(-2deg);
+      width: 160px;
+    }
+    .polaroid-card:nth-child(2) { transform: rotate(3deg); }
+    .polaroid-img {
+      width: 100%; height: 160px;
+      object-fit: cover;
+      border-radius: 4px;
+    }
+
+    .cake-container { margin: 25px 0; cursor: pointer; }
+    .flame {
+      font-size: 2.2rem;
+      animation: flicker 0.6s infinite alternate;
+    }
+    .cake-emoji { font-size: 5rem; }
+
+    .proposal-card {
+      background: linear-gradient(180deg, #ffffff 0%, #fff5f7 100%);
+      border: 3px solid var(--pink-primary);
+      border-radius: 20px;
+      padding: 24px;
+      margin-top: 20px;
+      box-shadow: 0 10px 25px rgba(255, 77, 109, 0.2);
+    }
+    .proposal-btn-group {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 20px;
+      position: relative;
+    }
+
+    @keyframes flicker {
+      0% { transform: scale(1); opacity: 0.9; }
+      100% { transform: scale(1.15); opacity: 1; filter: drop-shadow(0 0 8px gold); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes popIn {
+      from { transform: scale(0.9); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .shake { animation: shakeAnim 0.3s ease-in-out; }
+    @keyframes shakeAnim {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-8px); }
+      75% { transform: translateX(8px); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background Ambience -->
+  <div class="bg-video-container">
+    <video class="bg-video" autoplay muted loop playsinline>
+      <source src="Snapchat-432840678.mp4" type="video/mp4">
+      <source src="Snapchat-1531528999.mp4" type="video/mp4">
+    </video>
+  </div>
+
+  <!-- SCREEN 1: LOCK SCREEN -->
+  <section class="screen active" id="screen-lock">
+    <div class="lock-card">
+      <img src="nishu_photo4.jpg" alt="Nishu" class="avatar-img" onerror="tryNextSource(this, ['nishu_photo3.jpg'])" />
+      <h2 class="lock-title">Happy Birthday Nishu! ✨</h2>
+      <p style="color: #666; font-size: 0.95rem;">Enter the magical date of your arrival (DDMM)</p>
+      
+      <div class="pin-display">
+        <div class="pin-slot" id="slot-0"></div>
+        <div class="pin-slot" id="slot-1"></div>
+        <div class="pin-slot" id="slot-2"></div>
+        <div class="pin-slot" id="slot-3"></div>
+      </div>
+
+      <div id="pin-error" style="display: none; color: #e53e3e; margin-bottom: 15px; font-weight: 700;">
+        Hint: Today's date (0911) 😉❤️
+      </div>
+
+      <div class="keypad">
+        <button class="num-key" onclick="pressKey(1)">1</button>
+        <button class="num-key" onclick="pressKey(2)">2</button>
+        <button class="num-key" onclick="pressKey(3)">3</button>
+        <button class="num-key" onclick="pressKey(4)">4</button>
+        <button class="num-key" onclick="pressKey(5)">5</button>
+        <button class="num-key" onclick="pressKey(6)">6</button>
+        <button class="num-key" onclick="pressKey(7)">7</button>
+        <button class="num-key" onclick="pressKey(8)">8</button>
+        <button class="num-key" onclick="pressKey(9)">9</button>
+        <button class="num-key" style="font-size: 1.1rem;" onclick="clearPin()">C</button>
+        <button class="num-key" onclick="pressKey(0)">0</button>
+        <button class="num-key" style="font-size: 1.1rem;" onclick="submitPin()">🔓</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCREEN 2: TEASER -->
+  <section class="screen" id="screen-teaser">
+    <div class="teaser-card">
+      <img src="nishu_photo1.jpg" alt="Nishu" class="avatar-img" />
+      <h2 style="font-family: var(--font-cute); font-size: 2.5rem; color: var(--pink-dark); margin-bottom: 12px;">
+        Hey Gorgeous... ❤️
+      </h2>
+      <p style="font-size: 1.1rem; line-height: 1.6; color: #4a5568; margin-bottom: 24px;">
+        Today is all about you: your warmth, your smile, and everything that makes you so special to me. I made something straight from my heart... ready to see it? 🎁
+      </p>
+      <button class="cute-btn" onclick="showScreen('screen-hub')">STEP INSIDE ✨</button>
+    </div>
+  </section>
+
+  <!-- SCREEN 3: GIFTS HUB -->
+  <section class="screen" id="screen-hub">
+    <div class="hub-container">
+      <h2 style="font-family: var(--font-cute); font-size: 2.3rem; color: var(--pink-dark);">Special Gifts For You 🎁</h2>
+      <p style="color: #718096; font-size: 0.95rem; margin-bottom: 10px;">Tap each gift to unlock a chapter</p>
+      <div class="gifts-grid">
+        <div class="gift-item-card" onclick="openGiftScreen('gift1')">
+          <div class="gift-icon">📸</div>
+          <strong>Reels & Beauty</strong>
+        </div>
+        <div class="gift-item-card" onclick="openGiftScreen('gift2')">
+          <div class="gift-icon">🎂</div>
+          <strong>Make A Wish</strong>
+        </div>
+        <div class="gift-item-card" onclick="openGiftScreen('gift3')">
+          <div class="gift-icon">💌</div>
+          <strong>From My Heart</strong>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GIFT 1: REELS & POLAROIDS -->
+  <section class="screen" id="screen-gift1">
+    <div class="subview-container">
+      <div class="subview-nav">
+        <button class="back-btn" onclick="goToHub()">← Back</button>
+        <div class="slide-dots" id="dots-gift1">
+          <div class="dot active"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+        </div>
+        <span style="font-weight: 700; color: var(--pink-dark);">Gift 1 of 3</span>
+      </div>
+
+      <!-- Slide 1: Reels 1 -->
+      <div class="slide-page active" id="g1-slide-0">
+        <h3 style="font-family: var(--font-cute); font-size: 2.1rem; color: var(--pink-dark); margin-bottom: 12px;">
+          🎥 That Smile I Fall For ✨
+        </h3>
+        <div class="reel-showcase-box">
+          <div class="phone-reel-card">
+            <video class="phone-video" controls autoplay muted loop playsinline>
+              <source src="nishu_photo5.mp4" type="video/mp4">
+            </video>
+            <div class="phone-badge">My Favorite View 💖</div>
+          </div>
+          <div class="phone-reel-card">
+            <video class="phone-video" controls autoplay muted loop playsinline>
+              <source src="nishu_photo6.mp4" type="video/mp4">
+            </video>
+            <div class="phone-badge">Pure Radiance ✨</div>
+          </div>
+          <div class="phone-reel-card">
+            <video class="phone-video" controls autoplay muted loop playsinline>
+              <source src="nishu_photo7.mp4" type="video/mp4">
+            </video>
+            <div class="phone-badge">Sunshine & Charm 🌸</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 2: Reels 2 -->
+      <div class="slide-page" id="g1-slide-1">
+        <h3 style="font-family: var(--font-cute); font-size: 2.1rem; color: var(--pink-dark); margin-bottom: 12px;">
+          💫 Pure Nishu Magic
+        </h3>
+        <div class="reel-showcase-box">
+          <div class="phone-reel-card">
+            <video class="phone-video" controls autoplay muted loop playsinline>
+              <source src="nishu_photo8.mp4" type="video/mp4">
+            </video>
+            <div class="phone-badge">Sweetest Laughter 🌸</div>
+          </div>
+          <div class="phone-reel-card">
+            <video class="phone-video" controls autoplay muted loop playsinline>
+              <source src="nishu_photo9.mp4" type="video/mp4">
+            </video>
+            <div class="phone-badge">Vibe Check ✨</div>
+          </div>
+          <div class="phone-reel-card">
+            <video class="phone-video" controls autoplay muted loop playsinline>
+              <source src="nishu_photo10.mp4" type="video/mp4">
+            </video>
+            <div class="phone-badge">Unmatched Cutie 🥰</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 3: Polaroids -->
+      <div class="slide-page" id="g1-slide-2">
+        <h3 style="font-family: var(--font-cute); font-size: 2.1rem; color: var(--pink-dark); margin-bottom: 10px;">
+          📸 Forever Captured In My Heart
+        </h3>
+        <div class="polaroid-row">
+          <div class="polaroid-card">
+            <img src="nishu_photo1.jpg" class="polaroid-img" alt="Nishu" />
+            <div style="font-family: var(--font-cute); font-size: 1.25rem; margin-top: 8px;">That irresistible spark 👓❤️</div>
+          </div>
+          <div class="polaroid-card">
+            <img src="nishu_photo2.jpg" class="polaroid-img" alt="Nishu" />
+            <div style="font-family: var(--font-cute); font-size: 1.25rem; margin-top: 8px;">Elegance personified 🌹✨</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="carousel-arrows">
+        <button class="arrow-btn" onclick="changeSlide('gift1', -1)">❮</button>
+        <button class="arrow-btn" onclick="changeSlide('gift1', 1)">❯</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- GIFT 2: MAKE A WISH -->
+  <section class="screen" id="screen-gift2">
+    <div class="subview-container">
+      <div class="subview-nav">
+        <button class="back-btn" onclick="goToHub()">← Back</button>
+        <span style="font-weight: 700; color: var(--pink-dark);">Gift 2 of 3</span>
+      </div>
+      <h2 style="font-family: var(--font-cute); font-size: 2.6rem; color: var(--pink-dark);">Make A Wish, Birthday Girl! 🎂</h2>
+      <p style="color: #666; font-size: 1.05rem; margin-top: 5px;">Tap the candle flame to blow it out...</p>
+      
+      <div class="cake-container" onclick="blowCandle()">
+        <div class="flame" id="flame">🔥</div>
+        <div class="cake-emoji">🎂</div>
+      </div>
+
+      <div id="wish-success" style="display: none; animation: fadeIn 0.4s ease;">
+        <h3 style="font-family: var(--font-cute); font-size: 2rem; color: var(--pink-dark);">May every dream of yours come true! ✨</h3>
+        <p style="color: #4a5568; margin-top: 8px; line-height: 1.6;">
+          I wished for you, and today all I want is to see you happy, loved, and smiling forever. But there's one more gift waiting for you...
+        </p>
+        <button class="cute-btn" style="margin-top: 15px;" onclick="openGiftScreen('gift3')">OPEN THE FINAL GIFT 💌</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- GIFT 3: THE PROPOSAL & LOVE CONFESSION -->
+  <section class="screen" id="screen-gift3">
+    <div class="subview-container">
+      <div class="subview-nav">
+        <button class="back-btn" onclick="goToHub()">← Back</button>
+        <span style="font-weight: 700; color: var(--pink-dark);">Gift 3 of 3</span>
+      </div>
+
+      <div style="background: white; border-radius: 20px; padding: 26px 20px; text-align: left; line-height: 1.8; border-left: 6px solid var(--pink-primary); box-shadow: 0 4px 18px rgba(0,0,0,0.06);">
+        <h2 style="font-family: var(--font-script); font-size: 2.3rem; color: var(--pink-dark); margin-bottom: 12px;">Dearest Nishu, ❤️</h2>
+        
+        <p style="color: #4a5568; font-size: 1.05rem; margin-bottom: 12px;">
+          Happy Birthday to the most gorgeous, charming, and genuinely special person in my life.
+        </p>
+        <p style="color: #4a5568; font-size: 1.05rem; margin-bottom: 12px;">
+          Ever since you came into my days, everything has had a little more color, a little more laughter, and so much warmth. Every conversation, every look, every little moment with you has made one thing completely certain:
+        </p>
+        <p style="color: #2b2d42; font-size: 1.15rem; font-weight: 800; margin-bottom: 14px; text-align: center;">
+          I didn't just want to wish you today — I wanted to tell you that I love you. Truly and deeply. ❤️
+        </p>
+        <p style="color: #4a5568; font-size: 1.05rem; margin-bottom: 16px;">
+          I want to be there celebrating every milestone with you, making you laugh when things get hectic, and standing beside you through everything life has to offer.
+        </p>
+
+        <!-- Proposal Question Card -->
+        <div class="proposal-card" id="proposal-box">
+          <h2 style="font-family: var(--font-title); font-size: 2rem; color: var(--pink-dark); text-align: center; margin-bottom: 8px;">
+            Nishu, Will You Be Mine? 💍✨
+          </h2>
+          <p style="text-align: center; color: #718096; font-size: 0.95rem;">
+            Say yes and make this birthday our favorite beginning.
+          </p>
+          <div class="proposal-btn-group">
+            <button class="cute-btn" style="font-size: 1.2rem; padding: 12px 32px;" onclick="acceptProposal()">YES! 💖</button>
+            <button class="cute-btn" style="background: white; color: var(--pink-dark); border: 2px solid var(--pink-primary);" onmouseover="dodgeNo(this)" onclick="dodgeNo(this)">No 🙈</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</body>
+</html>
